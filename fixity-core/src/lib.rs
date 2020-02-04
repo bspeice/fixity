@@ -4,5 +4,6 @@
 #![no_std]
 #![deny(missing_docs, warnings)]
 
+pub mod data_types;
 pub mod parsers;
 pub mod wire_parser;
