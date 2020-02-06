@@ -1,7 +1,6 @@
 //! Extra utility parsers for use with `nom`
 
-use nom::bytes::streaming::take_while1;
-use nom::character::is_digit;
+use nom::character::streaming::digit1;
 use nom::combinator::{map, opt};
 use nom::error::ParseError;
 use nom::sequence::tuple;
@@ -34,7 +33,7 @@ pub(crate) fn u_atoi<'a, T, E: ParseError<&'a [u8]>>(i: &'a [u8]) -> IResult<&'a
 where
     T: PrimInt + FromPrimitive,
 {
-    map(take_while1(is_digit), |digits: &[u8]| {
+    map(digit1, |digits: &[u8]| {
         digits.iter().fold(T::zero(), |val, d| {
             val * T::from_u8(10).unwrap() + T::from_u8(d - b'0').unwrap()
         })
