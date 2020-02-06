@@ -1,9 +1,10 @@
 //! Extra utility parsers for use with `nom`
 
-use nom::bytes::streaming::take_till1;
+use nom::bytes::streaming::take_while1;
 use nom::character::is_digit;
-use nom::combinator::opt;
+use nom::combinator::{map, opt};
 use nom::error::ParseError;
+use nom::sequence::tuple;
 use nom::Err;
 use nom::IResult;
 use num_traits::{FromPrimitive, PrimInt, Signed};
@@ -24,37 +25,25 @@ pub(crate) fn atoi<'a, T, E: ParseError<&'a [u8]>>(i: &'a [u8]) -> IResult<&'a [
 where
     T: PrimInt + Signed + FromPrimitive,
 {
-    let (i, is_neg) = opt(byte(b'-'))(i)?;
-    let (i, digits) = take_till1(|b| !is_digit(b))(i)?;
-
-    let mut value = T::zero();
-    for d in digits {
-        value = value * T::from_u8(10).unwrap();
-        value = value + T::from_u8(d - b'0').unwrap();
-    }
-
-    Ok((i, is_neg.map_or(value, |_| -value)))
+    map(tuple((opt(byte(b'-')), u_atoi)), |(sign, value)| {
+        sign.map_or_else(|| value, |_| value * T::from_i8(-1).unwrap())
+    })(i)
 }
 
 pub(crate) fn u_atoi<'a, T, E: ParseError<&'a [u8]>>(i: &'a [u8]) -> IResult<&'a [u8], T, E>
 where
     T: PrimInt + FromPrimitive,
 {
-    let (i, digits) = take_till1(|b| !is_digit(b))(i)?;
-
-    let mut value = T::zero();
-    for d in digits {
-        value = value * T::from_u8(10).unwrap();
-        value = value + T::from_u8(d - b'0').unwrap();
-    }
-
-    Ok((i, value))
+    map(take_while1(is_digit), |digits: &[u8]| {
+        digits.iter().fold(T::zero(), |val, d| {
+            val * T::from_u8(10).unwrap() + T::from_u8(d - b'0').unwrap()
+        })
+    })(i)
 }
 
 #[cfg(test)]
 mod tests {
-    use crate::parsers::{atoi, byte};
-    use nom::sequence::tuple;
+    use crate::parsers::atoi;
     use nom::{Err, Needed};
 
     #[test]
@@ -69,8 +58,17 @@ mod tests {
     fn atoi_complete() {
         let bytes = b"1234|";
 
-        let (rem, (val, _)) = tuple((atoi::<i16, ()>, byte(b'|')))(bytes).unwrap();
-        assert!(rem.is_empty());
+        let (rem, val) = atoi::<i16, ()>(bytes).unwrap();
+        assert_eq!(rem, b"|");
         assert_eq!(val, 1234_i16);
+    }
+
+    #[test]
+    fn atoi_negative() {
+        let bytes = b"-1234|";
+
+        let (rem, val) = atoi::<i16, ()>(bytes).unwrap();
+        assert_eq!(rem, b"|");
+        assert_eq!(val, -1234_i16);
     }
 }
