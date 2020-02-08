@@ -45,3 +45,25 @@ pub type NumInGroupField = UnsignedIntField;
 
 /// Integer field representing a monotonically increasing sequence number
 pub type SeqNumField = UnsignedIntField;
+
+///
+pub struct DayOfMonthField(u8);
+
+impl<'a> Field<'a> for DayOfMonthField {
+    type Type = u8;
+
+    fn new(payload: &'a [u8]) -> Result<Self, ParseError> {
+        let (_, v) =
+            all_consuming(u_atoi::<u64, ()>)(payload).or(Err(ParseError::DayOfMonthField))?;
+
+        if 1 <= v && v <= 31 {
+            Ok(DayOfMonthField(v as u8))
+        } else {
+            Err(ParseError::DayOfMonthField)
+        }
+    }
+
+    fn value(&self) -> Self::Type {
+        self.0
+    }
+}
