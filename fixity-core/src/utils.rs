@@ -69,6 +69,12 @@ mod tests {
     }
 
     #[test]
+    fn atoi_zero() {
+        assert_eq!(atoi::<_, ()>(b"0"), Ok((&b""[..], 0)));
+        assert_eq!(u_atoi::<_, ()>(b"0"), Ok((&b""[..], 0)));
+    }
+
+    #[test]
     fn byte_simple() {
         assert_eq!(byte::<(&[u8], ErrorKind)>(b'a')(b"abc"), Ok((&b"bc"[..], b'a')));
         assert_eq!(byte::<(&[u8], ErrorKind)>(b'a')(b"bc"), Err(Err::Error((&b"bc"[..], ErrorKind::Char))));
