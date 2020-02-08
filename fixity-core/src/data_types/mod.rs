@@ -2,10 +2,6 @@
 pub mod int;
 pub mod string;
 
-use nom::error::{ParseError as NParseError};
-use nom::InputLength;
-use nom::{IResult as NResult};
-
 /// FIX data types for the key-value pairs. These data types assume that the provided input
 /// is exactly the expected value; unconsumed input is considered an error.
 // The lifetime declared here is needed to prove that fields within the struct implementation

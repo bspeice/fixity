@@ -1,6 +1,6 @@
 //! Extra utility parsers for use with `nom`
 
-use nom::character::streaming::digit1;
+use nom::character::complete::digit1;
 use nom::combinator::{map, opt};
 use nom::error::ParseError;
 use nom::sequence::tuple;
@@ -45,32 +45,32 @@ where
 
 #[cfg(test)]
 mod tests {
-    use crate::utils::atoi;
-    use nom::{Err, Needed};
+    use crate::utils::{atoi, u_atoi, byte};
+    use nom::{Err};
+    use nom::error::ErrorKind;
 
     #[test]
-    fn atoi_incomplete() {
-        let bytes = b"1234";
+    fn atoi_simple() {
+        assert_eq!(atoi::<_, ()>(b"1234"), Ok((&b""[..], 1234)));
+        assert_eq!(u_atoi::<_, ()>(b"1234"), Ok((&b""[..], 1234)));
 
-        let parsed = atoi::<i16, ()>(bytes);
-        assert_eq!(parsed, Err(Err::Incomplete(Needed::Size(1))));
+        assert_eq!(atoi::<_, ()>(b"-1234"), Ok((&b""[..], -1234)));
     }
 
     #[test]
-    fn atoi_complete() {
-        let bytes = b"1234|";
+    fn atoi_leading_zero() {
+        assert_eq!(atoi::<_, ()>(b"01234"), Ok((&b""[..], 1234)));
+        assert_eq!(u_atoi::<_, ()>(b"01234"), Ok((&b""[..], 1234)));
+        assert_eq!(atoi::<_, ()>(b"00123400"), Ok((&b""[..], 123400)));
+        assert_eq!(u_atoi::<_, ()>(b"00123400"), Ok((&b""[..], 123400)));
 
-        let (rem, val) = atoi::<i16, ()>(bytes).unwrap();
-        assert_eq!(rem, b"|");
-        assert_eq!(val, 1234_i16);
+        assert_eq!(atoi::<_, ()>(b"-01234"), Ok((&b""[..], -1234)));
+        assert_eq!(atoi::<_, ()>(b"-00123400"), Ok((&b""[..], -123400)));
     }
 
     #[test]
-    fn atoi_negative() {
-        let bytes = b"-1234|";
-
-        let (rem, val) = atoi::<i16, ()>(bytes).unwrap();
-        assert_eq!(rem, b"|");
-        assert_eq!(val, -1234_i16);
+    fn byte_simple() {
+        assert_eq!(byte::<(&[u8], ErrorKind)>(b'a')(b"abc"), Ok((&b"bc"[..], b'a')));
+        assert_eq!(byte::<(&[u8], ErrorKind)>(b'a')(b"bc"), Err(Err::Error((&b"bc"[..], ErrorKind::Char))));
     }
 }
