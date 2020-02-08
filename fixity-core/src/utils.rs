@@ -8,6 +8,7 @@ use nom::Err;
 use nom::IResult;
 use num_traits::{FromPrimitive, PrimInt, Signed};
 
+#[inline]
 pub(crate) fn byte<'a, E: ParseError<&'a [u8]>>(
     b: u8,
 ) -> impl Fn(&'a [u8]) -> IResult<&'a [u8], u8, E> {
@@ -20,6 +21,7 @@ pub(crate) fn byte<'a, E: ParseError<&'a [u8]>>(
     }
 }
 
+#[inline]
 pub(crate) fn atoi<'a, T, E: ParseError<&'a [u8]>>(i: &'a [u8]) -> IResult<&'a [u8], T, E>
 where
     T: PrimInt + Signed + FromPrimitive,
@@ -29,6 +31,7 @@ where
     })(i)
 }
 
+#[inline]
 pub(crate) fn u_atoi<'a, T, E: ParseError<&'a [u8]>>(i: &'a [u8]) -> IResult<&'a [u8], T, E>
 where
     T: PrimInt + FromPrimitive,
@@ -42,7 +45,7 @@ where
 
 #[cfg(test)]
 mod tests {
-    use crate::parsers::atoi;
+    use crate::utils::atoi;
     use nom::{Err, Needed};
 
     #[test]

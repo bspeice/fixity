@@ -1,48 +1,39 @@
 //! FIX types representing integral values
 use crate::data_types::{Field, ParseError};
-use crate::parsers::{atoi, u_atoi};
+use crate::utils::{atoi, u_atoi};
+use nom::combinator::all_consuming;
 
 /// Integer FIX value; allowed to be preceded by an arbitrary number of 0's
-pub struct IntField {
-    value: i64,
-}
+pub struct IntField(i64);
 
 impl<'a> Field<'a> for IntField {
     type Type = i64;
 
     fn new(payload: &'a [u8]) -> Result<Self, ParseError> {
-        let (rem, value) = atoi::<i64, ()>(payload).or(Err(ParseError::Unknown))?;
-        if rem.is_empty() {
-            Ok(IntField { value })
-        } else {
-            Err(ParseError::Unknown)
-        }
+        all_consuming(atoi::<i64, ()>)(payload)
+            .or(Err(ParseError::IntField))
+            .map(|(_, v)| IntField(v))
     }
 
     fn value(&self) -> Self::Type {
-        self.value
+        self.0
     }
 }
 
 /// Unsigned integer FIX value; used as a basis for parsing other related value types
-pub struct UnsignedIntField {
-    value: u64,
-}
+pub struct UnsignedIntField(u64);
 
 impl<'a> Field<'a> for UnsignedIntField {
     type Type = u64;
 
     fn new(payload: &'a [u8]) -> Result<Self, ParseError> {
-        let (rem, value) = u_atoi::<u64, ()>(payload).or(Err(ParseError::Unknown))?;
-        if rem.is_empty() {
-            Ok(UnsignedIntField { value })
-        } else {
-            Err(ParseError::Unknown)
-        }
+        all_consuming(u_atoi::<u64, ()>)(payload)
+            .or(Err(ParseError::UnsignedIntField))
+            .map(|(_, v)| UnsignedIntField(v))
     }
 
     fn value(&self) -> Self::Type {
-        self.value
+        self.0
     }
 }
 

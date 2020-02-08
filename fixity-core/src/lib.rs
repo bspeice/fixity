@@ -2,8 +2,8 @@
 //! Implementation of FIX wire protocol and types; has no opinion on session management,
 //! transport protocol, etc.
 #![no_std]
-//#![deny(missing_docs, warnings)]
+#![deny(missing_docs, warnings)]
 
 pub mod data_types;
-pub mod parsers;
-pub mod wire_parser;
+pub mod utils;
+pub mod wire_format;
