@@ -39,7 +39,7 @@ where
     fn new(payload: &'a [u8]) -> Result<Self, ParseError> {
         all_consuming(take_till1::<_, &[u8], (&[u8], _)>(|b| b == T::to_u8()))(payload)
             .map_err(|e| match e {
-                NErr::Error(e) => ParseError::UnusedInput(e.0),
+                NErr::Error(_) => ParseError::StringField,
                 _ => unreachable!(),
             })
             .map(|(_, v)| DelimitedStringField(v, PhantomData))

@@ -21,7 +21,7 @@ where
 }
 
 /// Encountered an error or ill-formed FIX message during parsing
-pub enum ParseError<'a> {
+pub enum ParseError {
     /// Error encountered while parsing an integer field
     IntField,
     /// Error encountered while parsing an unsigned integer field
@@ -32,6 +32,4 @@ pub enum ParseError<'a> {
     DataField,
     /// Error encountered while parsing a string field
     StringField,
-    /// Input payload was not fully consumed
-    UnusedInput(&'a [u8]),
 }
