@@ -1,54 +1,52 @@
 //! FIX data types representing string/byte-like values
 use crate::data_types::{Field, ParseError};
-use core::marker::PhantomData;
-use nom::bytes::complete::take_till1;
-use nom::combinator::all_consuming;
-use nom::Err as NErr;
-use typenum::{Unsigned, P1};
 
-/// FIX data payload, allowed to contain arbitrary data
-pub struct DataField<'a>(&'a [u8]);
+/// string field containing raw data with no format or content restrictions. Data fields are always
+/// immediately preceded by a length field. The length field should specify the number of bytes of
+/// the value of the data field (up to but not including the terminating SOH).
+///
+/// Caution: the value of one of these fields may contain the delimiter (SOH) character. Note that
+/// the value specified for this field should be followed by the delimiter (SOH) character as all
+/// fields are terminated with an "SOH".
+pub struct DataField;
 
-impl<'a> Field<'a> for DataField<'a> {
-    type Type = &'a [u8];
+impl<'a> Field<'a> for DataField {
+    type Output = &'a [u8];
 
-    fn new(payload: &'a [u8]) -> Result<Self, ParseError> {
-        if payload.len() > 0 {
-            Ok(DataField(payload))
-        } else {
-            Err(ParseError::DataField)
-        }
-    }
-
-    fn value(&self) -> Self::Type {
-        self.0
+    fn parse(_payload: &'a [u8]) -> Result<Self::Output, ParseError> {
+        unimplemented!()
     }
 }
 
-/// FIX data payload that cannot contain the delimiter value.
-pub struct DelimitedStringField<'a, T>(&'a [u8], PhantomData<T>)
-where
-    T: Unsigned;
+/// Alpha-numeric free format strings, can include any character or punctuation except the
+/// delimiter. All String fields are case sensitive (i.e. morstatt != Morstatt).
+pub struct StringField;
 
-impl<'a, T> Field<'a> for DelimitedStringField<'a, T>
-where
-    T: Unsigned,
-{
-    type Type = &'a [u8];
+impl<'a> Field<'a> for StringField {
+    type Output = &'a [u8];
 
-    fn new(payload: &'a [u8]) -> Result<Self, ParseError> {
-        all_consuming(take_till1::<_, &[u8], (&[u8], _)>(|b| b == T::to_u8()))(payload)
-            .map_err(|e| match e {
-                NErr::Error(_) => ParseError::StringField,
-                _ => unreachable!(),
-            })
-            .map(|(_, v)| DelimitedStringField(v, PhantomData))
-    }
-
-    fn value(&self) -> Self::Type {
-        self.0
+    fn parse(_payload: &'a [u8]) -> Result<Self::Output, ParseError> {
+        unimplemented!()
     }
 }
 
-/// FIX data payload that cannot contain the FIX delimiter (ASCII SOH) value
-pub type StringField<'a> = DelimitedStringField<'a, P1>;
+#[cfg(test)]
+mod tests {
+    use crate::data_types::string::{DataField, StringField};
+    use crate::data_types::Field;
+    use crate::SOH;
+
+    #[test]
+    fn data_field_simple() {
+        assert_eq!(DataField::parse(b"abc"), Ok(&b"abc"[..]));
+        assert_eq!(DataField::parse(&[SOH][..]), Ok(&[SOH][..]));
+        assert!(DataField::parse(b"").is_err());
+    }
+
+    #[test]
+    fn string_field_simple() {
+        assert_eq!(StringField::parse(b"abc"), Ok(&b"abc"[..]));
+        assert_eq!(StringField::parse(&[0x14][..]), Ok(&[0x14][..]));
+        assert!(StringField::parse(&[0x14, SOH][..]).is_err());
+    }
+}

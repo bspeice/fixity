@@ -7,3 +7,6 @@
 pub mod data_types;
 pub mod utils;
 pub mod wire_format;
+
+/// The default FIX delimiter token
+pub const SOH: u8 = 0x01;
