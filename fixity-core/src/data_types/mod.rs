@@ -17,4 +17,17 @@ where
 
 /// Encountered an error or ill-formed FIX message during parsing
 #[derive(Debug, PartialEq)]
-pub enum ParseError {}
+pub enum ParseError {
+    /// Error parsing a signed integer field type
+    Int,
+    /// Error parsing an unsigned integer field type
+    UnsignedInt,
+    /// Error parsing a DayOfMonth field type
+    DayOfMonth,
+    /// Error parsing a TagNum field type
+    TagNum,
+    /// Error parsing a Data field type
+    Data,
+    /// Error parsing a String field type
+    String,
+}

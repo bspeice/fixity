@@ -1,5 +1,8 @@
 //! FIX data types representing string/byte-like values
 use crate::data_types::{Field, ParseError};
+use nom::combinator::all_consuming;
+use nom::bytes::complete::take_till;
+use crate::SOH;
 
 /// string field containing raw data with no format or content restrictions. Data fields are always
 /// immediately preceded by a length field. The length field should specify the number of bytes of
@@ -13,8 +16,12 @@ pub struct DataField;
 impl<'a> Field<'a> for DataField {
     type Output = &'a [u8];
 
-    fn parse(_payload: &'a [u8]) -> Result<Self::Output, ParseError> {
-        unimplemented!()
+    fn parse(payload: &'a [u8]) -> Result<Self::Output, ParseError> {
+        if payload.is_empty() {
+            Err(ParseError::Data)
+        } else {
+            Ok(payload)
+        }
     }
 }
 
@@ -25,8 +32,10 @@ pub struct StringField;
 impl<'a> Field<'a> for StringField {
     type Output = &'a [u8];
 
-    fn parse(_payload: &'a [u8]) -> Result<Self::Output, ParseError> {
-        unimplemented!()
+    fn parse(payload: &'a [u8]) -> Result<Self::Output, ParseError> {
+        all_consuming(take_till::<_, _, ()>(|b| b == SOH))(payload)
+            .map(|(_, value)| value)
+            .or(Err(ParseError::String))
     }
 }
 
