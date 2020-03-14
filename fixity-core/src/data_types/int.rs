@@ -1,7 +1,7 @@
 //! FIX types representing integral values
 use crate::data_types::{Field, ParseError};
 use nom::combinator::{all_consuming, verify};
-use crate::utils::{tagnum, u_atoi, atoi};
+use crate::wire_format::{tagnum, u_atoi, atoi};
 
 /// Sequence of digits without commas or decimals and optional sign character (ASCII characters
 /// "-" and "0" - "9" ). The sign character utilizes one byte (i.e. positive int is "99999" while
