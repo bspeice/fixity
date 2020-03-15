@@ -13,7 +13,3 @@ features = []
 [dependencies.num-traits]
 version = "0.2"
 features = []
-
-[dependencies.typenum]
-version = "1.11"
-features = []
